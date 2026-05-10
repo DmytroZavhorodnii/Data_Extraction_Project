@@ -1,0 +1,125 @@
+================================================================================
+                   POPRAWNE MIARY DAX DO POWER BI
+================================================================================
+
+SCENARIUSZ: Brak relacji między order_date a RateDate
+Rozwiązanie: Miary bez relacji (DirectQuery compatible)
+
+================================================================================
+MIARA 1: Sprzedaż w USD (PODSTAWOWA)
+================================================================================
+
+Kliknij prawo na: sales_order_detail
+Kliknij: New Measure
+
+Nazwa: SalesUSD
+Formuła:
+
+SalesUSD = SUM(sales_order_detail[unit_price]) * SUM(sales_order_detail[order_qty])
+
+Albo bardziej dokładnie:
+
+SalesUSD = SUMPRODUCT(sales_order_detail[unit_price], sales_order_detail[order_qty])
+
+Format: Currency (USD), 2 miejsca dziesiętne
+
+
+================================================================================
+MIARA 2: Średni kurs USD/PLN
+================================================================================
+
+Kliknij prawo na: CurrencyRateData
+Kliknij: New Measure
+
+Nazwa: AvgRate
+Formuła:
+
+AvgRate = AVERAGE(CurrencyRateData[Rate])
+
+Format: Decimal, 4 miejsca
+
+
+================================================================================
+MIARA 3: Sprzedaż w PLN (PROSTA - ZALECANA!)
+================================================================================
+
+Kliknij prawo na: sales_order_detail
+Kliknij: New Measure
+
+Nazwa: SalesPLN
+Formuła:
+
+SalesPLN = SalesUSD * 4.05
+
+(gdzie 4.05 to średni kurs z ostatnich 4 lat)
+
+Format: Currency (PLN), 2 miejsca
+
+
+================================================================================
+MIARA 4: Dynamiczny kurs (BARDZIEJ ZŁOŻONA)
+================================================================================
+
+Jeśli chcesz dynamicznie wyciągnąć kurs:
+
+Nazwa: SalesPLN_Dynamic
+Formuła:
+
+SalesPLN_Dynamic =
+VAR AvgCurrencyRate = AVERAGE(CurrencyRateData[Rate])
+RETURN
+    SUM(sales_order_detail[unit_price]) *
+    SUM(sales_order_detail[order_qty]) *
+    AvgCurrencyRate
+
+Format: Currency (PLN)
+
+
+================================================================================
+MIARA 5: Trend kursu (wzrost/spadek)
+================================================================================
+
+Nazwa: CurrencyTrend
+Formuła:
+
+CurrencyTrend =
+VAR MaxRate = MAX(CurrencyRateData[Rate])
+VAR MinRate = MIN(CurrencyRateData[Rate])
+RETURN
+    IF(MaxRate > MinRate, "↑ Spadek PLN", "↓ Wzrost PLN")
+
+Format: Text
+
+
+================================================================================
+KTÓRĄ WYBRAĆ?
+================================================================================
+
+✅ NAJPROŚCIEJ - użyj MIARA 3 (SalesPLN = SalesUSD * 4.05)
+   - Działa zawsze
+   - DirectQuery compatible
+   - Brak problemów z relacjami
+
+⚠️  Jeśli chcesz dynamiczny kurs - MIARA 4
+
+================================================================================
+KROK PO KROKU:
+================================================================================
+
+1. W Data view
+2. Kliknij prawo na tabeli: sales_order_detail
+3. New Measure
+4. Wpisz:
+
+   SalesUSD = SUMPRODUCT(sales_order_detail[unit_price], sales_order_detail[order_qty])
+
+5. Enter
+6. Powtórz dla SalesPLN:
+
+   SalesPLN = SalesUSD * 4.05
+
+7. Format obie na Currency
+
+8. Przejdź do Report i dodaj wykresy!
+
+================================================================================

@@ -1,0 +1,41 @@
+
+Zrozum docelową strukturę gwiazdy
+Model końcowy: 4 wymiary + 1 fakt. Narysuj sobie schemat lub zapamiętaj:
+
+DimProduct DimSalesperson DimSalesTerritory DimOrderDate FactSales
+2
+Zmapuj tabele źródłowe (AdventureWorks)
+Otwórz SQL Server Management Studio i przejrzyj te tabele:
+-- Produkt (wymiar Product)
+Production.Product            -- główna info o produkcie
+Production.ProductSubcategory -- podkategoria
+Production.ProductCategory    -- kategoria
+
+-- Sprzedawca (wymiar Salesperson)
+Sales.SalesPerson             -- dane sprzedawcy (bonus, quota)
+Person.Person                 -- imię, nazwisko
+HumanResources.Employee       -- opcjonalnie: dział
+
+-- Terytorium (wymiar SalesTerritory)
+Sales.SalesTerritory          -- nazwa, kraj, region, kontynent
+Person.CountryRegion          -- kod kraju -> pełna nazwa
+
+-- Fakty sprzedaży
+Sales.SalesOrderHeader        -- zamówienie (data, sprzedawca, terytorium)
+Sales.SalesOrderDetail        -- linia zamówienia (produkt, ilość, cena)
+
+-- Wymiar daty (generowany)
+-- brak tabeli źródłowej — tworzysz go sam z dat z SalesOrderHeader
+3
+Sprawdź dostępne atrybuty zapytaniem SQL
+-- Przykład: sprawdź kolumny tabeli Product
+SELECT COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'Production'
+  AND TABLE_NAME = 'Product'
+ORDER BY ORDINAL_POSITION;
+Wyniki tego zadania są wewnętrzne — nie przesyłasz ich, tylko używasz w kolejnych zadaniach.
+4
+Dodatkowe źródła (poza AW)
+rating.csv — plik z ocenami produktów (dostarczony)
+API NBP — kursy walut (pobierasz w Zadaniu 2)

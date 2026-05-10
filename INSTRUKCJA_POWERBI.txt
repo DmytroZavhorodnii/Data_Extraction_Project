@@ -1,0 +1,583 @@
+================================================================================
+                  INSTRUKCJA: RAPORT SPRZEDAŻY W POWER BI
+                         Połączenie DirectQuery
+================================================================================
+Data: 2026-05-06
+Program: Microsoft Power BI Desktop
+Baza danych: BI_DW (SQL Server), schemat [Extract]
+================================================================================
+
+
+CZĘŚĆ 0: PRZYGOTOWANIE
+================================================================================
+
+WYMAGANIA:
+  ✓ Microsoft Power BI Desktop (najnowsza wersja)
+  ✓ SQL Server Management Studio (weryfikacja danych)
+  ✓ Dostęp do serwera: PF3L02RY
+  ✓ Baza danych: BI_DW
+  ✓ Użytkownik: dlt_user / Hasło: Lab5Pass!23
+
+PRZYGOTUJ DANE W SQL SERVER:
+  Otwórz SQL Server Management Studio i sprawdź, czy tabele istnieją:
+
+  USE BI_DW;
+  GO
+
+  SELECT COUNT(*) as [sales_order_header] FROM [Extract].[sales_order_header];
+  SELECT COUNT(*) as [sales_order_detail] FROM [Extract].[sales_order_detail];
+  SELECT COUNT(*) as [CurrencyRateData] FROM [Extract].[CurrencyRateData];
+
+  Powinno być:
+  - sales_order_header: 31,465 wierszy
+  - sales_order_detail: 121,317 wierszy
+  - CurrencyRateData: 1,004 wierszy
+
+
+================================================================================
+CZĘŚĆ 1: OTWÓRZ POWER BI I UTWÓRZ NOWY PROJEKT
+================================================================================
+
+KROK 1.1: Uruchomienie Power BI Desktop
+  1. Kliknij Start (Windows)
+  2. Wpisz: "Power BI Desktop"
+  3. Otwórz aplikację
+
+KROK 1.2: Utwórz nowy projekt
+  1. Kliknij: File → New
+  2. Lub: Ctrl + N
+  3. Czekaj na załadowanie (ok. 5-10 sekund)
+
+WYNIK:
+  - Puste okno Power BI Desktop
+  - Po lewej stronie: Home, Report, Data, Model tabs
+  - Po lewej dolnie: Visualizations panel
+
+
+================================================================================
+CZĘŚĆ 2: POŁĄCZENIE Z BAZĄ DANYCH (DirectQuery)
+================================================================================
+
+KROK 2.1: Otwórz Get Data
+  1. Kliknij: Home → Get Data
+  2. Lub: Ctrl + Shift + X
+  3. Pojawi się dropdown z dostępnymi źródłami
+
+KROK 2.2: Wybierz SQL Server
+  1. W menu "Get Data" kliknij: SQL Server
+  2. Lub wpisz "SQL" w polu wyszukiwania
+  3. Kliknij: SQL Server Database
+
+KROK 2.3: Podłącz się do serwera
+  Dialog: SQL Server Database
+
+  Server: PF3L02RY
+  Database: BI_DW
+  Data Connectivity mode: DirectQuery  ← WAŻNE!!!
+              (Radio button - zaznacz DirectQuery, nie Import)
+
+  SQL statement (optional): POZOSTAW PUSTE
+
+  Kliknij: OK
+
+KROK 2.4: Zaloguj się
+  Dialog: SQL Server Database
+
+  Authentication kind: Database
+  Username: dlt_user
+  Password: Lab5Pass!23
+
+  Zaznacz: ☑ Save my password
+  Kliknij: Connect
+
+  (Czekaj ~10-20 sekund na połączenie)
+
+WYNIK:
+  - Pojawi się Navigator window
+  - Będziesz widzieć listę tabel z schematu [Extract]
+
+
+================================================================================
+CZĘŚĆ 3: WYBÓR TABEL I STRUKTURA
+================================================================================
+
+KROK 3.1: Wybierz tabele źródłowe
+  W oknie Navigator zaznacz (checkboxa):
+
+  ☑ extract (najpierw kliknij, żeby rozwinąć)
+  ☑ sales_order_detail
+  ☑ sales_order_header
+  ☑ CurrencyRateData
+  ☑ product (opcjonalnie - do dodatkowych info)
+
+KROK 3.2: Załaduj tabele
+  Kliknij: Load
+
+  (Czekaj ~30-60 sekund - pobieranie metadanych ze znaczników)
+
+WYNIK:
+  - Power BI załaduje tabele w trybie DirectQuery
+  - Po lewej stronie zobaczysz: Fields panel z listą tabel
+  - Każda tabela będzie miała ikę "⟿" (DirectQuery)
+
+
+================================================================================
+CZĘŚĆ 4: MODEL DATA (RELACJE)
+================================================================================
+
+KROK 4.1: Przejdź do widoku Model
+  1. Po lewej kliknij: Model (lub Ctrl + Alt + 4)
+  2. Zobaczysz diagram tabel
+
+KROK 4.2: Sprawdź istniejące relacje
+  Powinno być już automatycznie:
+  - sales_order_header ←→ sales_order_detail (by sales_order_id)
+
+  MUSISZ DODAĆ relację do kursu walut:
+  - sales_order_header.order_date ←→ CurrencyRateData.RateDate
+
+KROK 4.3: Dodaj relację RĘCZNIE
+  ⚠️ WAŻNE: Nie będzie automatycznie!
+
+  1. Przejdź do: Model view (po lewej)
+  2. Znajdź tabelę: sales_order_header
+  3. Przeciągnij kolumnę: order_date
+  4. Upuść na kolumnę: RateDate w tabeli CurrencyRateData
+
+  Pojawi się dialog "New relationship":
+  From: sales_order_header [order_date]
+  To: CurrencyRateData [RateDate]
+
+  Cardinality: Many-to-One (*)
+  Cross filter direction: Single (default)
+  Kliknij: OK
+
+WYNIK:
+  ✓ Linia połączenia między tabelami
+  ✓ Możesz teraz używać kursu walut w miarach na podstawie daty
+
+WYNIK:
+  - Model będzie mieć pełne relacje
+  - Będziesz mógł robić cross-table analizy
+
+
+================================================================================
+CZĘŚĆ 5: PRZYGOTOWANIE KOLUMN OBLICZONYCH
+================================================================================
+
+KROK 5.1: Przejdź do widoku Data
+  Po lewej kliknij: Data (lub Ctrl + Alt + 3)
+
+KROK 5.2: Utwórz miarę (Measure) do obliczenia wartości USD
+  W panelu Fields kliknij prawo na: sales_order_detail
+  Kliknij: New Measure
+
+  Nazwa: SalesAmount_USD
+  Formuła DAX:
+
+  SalesAmount_USD =
+    SUM(sales_order_detail[unit_price] * sales_order_detail[order_qty])
+
+  Kliknij: ✓ (Potwierdź)
+
+  Formatowanie:
+  1. Kliknij na miarę: SalesAmount_USD
+  2. W Properties (na dole) ustaw:
+     Format: Currency
+     Decimal places: 2
+
+KROK 5.3: Utwórz miarę do kursu walut
+  Nowa miara na: CurrencyRateData
+
+  Nazwa: AvgCurrencyRate
+  Formuła DAX:
+
+  AvgCurrencyRate = AVERAGE(CurrencyRateData[Rate])
+
+  Format: Decimal, 4 miejsca
+
+KROK 5.4: Utwórz miarę dla wartości w PLN
+  Nowa miara na: sales_order_detail
+
+  Nazwa: SalesAmount_PLN
+  Formuła DAX (PROSTSZA):
+
+  SalesAmount_PLN =
+    SUMPRODUCT(
+      sales_order_detail[unit_price] *
+      sales_order_detail[order_qty] *
+      RELATED(sales_order_header[Rate_On_Date])
+    )
+
+  ⚠️ ALTERNATYWA (jeśli powyższe nie działa):
+  Użyj miary na sales_order_header i agreguj:
+
+  SalesAmount_USD_WithRate =
+    VAR TodayRate = AVERAGE(CurrencyRateData[Rate])
+    RETURN
+      SUM(sales_order_detail[unit_price] * sales_order_detail[order_qty]) * TodayRate
+
+  Format: Currency (PLN)
+
+  Uwaga: DirectQuery może mieć ograniczenia - jeśli miera nie działa,
+         wykonaj aggregację po stronie SQL (patrz CZĘŚĆ 9 - Problem 6)
+
+
+KROK 5.5: Utwórz miarę dla trendu kursu
+  Nowa miara na: CurrencyRateData
+
+  Nazwa: DailyTrend
+  Formuła DAX:
+
+  DailyTrend =
+    VAR CurrentRate = AVERAGE(CurrencyRateData[Rate])
+    VAR PreviousRate = CALCULATE(
+          AVERAGE(CurrencyRateData[Rate]),
+          DATEADD(CurrencyRateData[RateDate], -1, DAY)
+        )
+    RETURN
+      IF(ISBLANK(PreviousRate), 0, CurrentRate - PreviousRate)
+
+  Format: Decimal, 4 miejsca
+
+
+================================================================================
+CZĘŚĆ 6: TWORZENIE RAPORTU - STRONA 1
+================================================================================
+
+KROK 6.1: Przejdź do widoku Report
+  Po lewej kliknij: Report (lub Ctrl + Alt + 1)
+
+KROK 6.2: Zmień nazwę strony
+  1. Kliknij prawo na tab "Page 1" (u dołu)
+  2. Kliknij: Rename page
+  3. Wpisz: "Sprzedaż USD vs PLN"
+  4. Enter
+
+KROK 6.3: Dodaj tytuł raportu
+  1. Insert → Text Box
+  2. Kliknij na kanwę i narysuj box na górze
+  3. Wpisz:
+     "Analiza Sprzedaży: USD vs PLN (Kursy Walut)"
+
+  Formatowanie:
+  - Font size: 24
+  - Bold: Tak
+  - Alignment: Center
+
+KROK 6.4: Utwórz Slicer do filtrowania daty
+  1. Insert → Slicer
+  2. Kliknij na kanwę
+  3. Pojawi się: "Select a field"
+  4. Rozwiń: sales_order_header
+  5. Wybierz: order_date
+
+  Umieść slicer u góry strony (pod tytułem)
+
+KROK 6.5: Skonfiguruj Slicer
+  Po zaznaczeniu slicera:
+  1. W Properties ustaw:
+     Type: Between (między datami)
+  2. Ręcznie zaznacz daty:
+     Od: 2023-01-01
+     Do: 2025-06-30
+     (Min 2 lata!)
+
+KROK 6.6: Utwórz pierwszy wykres (Column Chart)
+  1. Insert → Column Chart (lub Clustered Column Chart)
+  2. Kliknij i narysuj wykres poniżej slicera
+
+  Konfiguracja wykresu:
+  Axis (X): sales_order_header[order_date]
+           → Ustaw na: Date Hierarchy → Date (tylko daty)
+           → Zakres: 2023-01-01 do 2025-06-30
+
+  Values (Y): Dodaj dwie miary:
+            - SalesAmount_USD (kolor niebieski)
+            - SalesAmount_PLN (kolor zielony)
+
+WYNIK wykresu:
+  ✓ Oś X: Daty (2023-2025)
+  ✓ Oś Y: Wartość sprzedaży
+  ✓ Dwie serie: USD (niebieski) i PLN (zielony)
+  ✓ Legenda: Po prawej
+  ✓ Tytuł wykresu: "Sprzedaż USD vs PLN"
+
+KROK 6.7: Dodaj elementy opisu do wykresu
+  Po kliknięciu na wykres (zaznaczeniu):
+  1. Format visual → Title
+     Text: "Sprzedaż USD vs PLN (Lata 2023-2025)"
+     On: ✓ Zaznacz
+
+  2. Format visual → Legend
+     Position: Right
+     On: ✓ Zaznacz
+
+  3. Format visual → Axis titles
+     Y-axis title: "Wartość sprzedaży"
+     X-axis title: "Data zamówienia"
+     On: ✓ Zaznacz dla obu
+
+KROK 6.8: Dodaj szczegółowe statystyki (Card)
+  1. Insert → Card (lub Multi-row Card)
+  2. Narysuj dwa mail boxy obok wykresu
+
+  Card 1:
+  Field: SalesAmount_USD
+  Title: "Całkowita sprzedaż USD"
+  Format: $#,##0.00
+
+  Card 2:
+  Field: SalesAmount_PLN
+  Title: "Całkowita sprzedaż PLN"
+  Format: PLN #,##0.00
+
+
+================================================================================
+CZĘŚĆ 7: TWORZENIE RAPORTU - STRONA 2
+================================================================================
+
+KROK 7.1: Utwórz nową stronę
+  1. Kliknij prawo na tab "Sprzedaż USD vs PLN" (u dołu)
+  2. Kliknij: Duplicate page
+  3. Zmień nazwę na: "Sprzedaż vs Trend Kursu"
+
+KROK 7.2: Usuń stary wykres
+  1. Kliknij na Column Chart
+  2. Naciśnij Delete
+
+KROK 7.3: Zaktualizuj tytuł
+  Zmień tekst w Text Box na:
+  "Analiza Sprzedaży Relative do Trendu Kursu Walut"
+
+KROK 7.4: Dodaj Slicer (ten sam co wcześniej)
+  Insert → Slicer
+  Field: sales_order_header[order_date]
+  Zakres: 2023-01-01 do 2025-06-30
+
+KROK 7.5: Utwórz kombinator wykres (Combo Chart)
+  1. Insert → Combo Chart
+  2. Narysuj na kanwie
+
+  Konfiguracja:
+  Axis (X): sales_order_header[order_date]
+           (Agregacja: Date → Date - codziennie)
+
+  Column Y-axis: SalesAmount_USD
+                 (Kolumny - sprzedaż)
+
+  Line Y-axis:  AvgCurrencyRate
+                (Linia - kurs walut)
+
+  Alternatywnie - Line chart z dwoma osiami:
+  1. Axis (X): Daty
+  2. Values: SalesAmount_USD (jako linia 1)
+  3. Values: AvgCurrencyRate (jako linia 2)
+
+KROK 7.6: Formatuj drugi wykres
+  1. Format visual → Title
+     Text: "Sprzedaż vs Trend Kursu USD/PLN"
+     On: ✓
+
+  2. Format visual → Legend
+     Position: Bottom
+     On: ✓
+
+  3. Format visual → Axis (X)
+     Title: "Data"
+     On: ✓
+
+  4. Format visual → Axis (Y1)
+     Title: "Sprzedaż (USD)"
+     On: ✓
+
+  5. Format visual → Axis (Y2)
+     Title: "Kurs USD/PLN"
+     On: ✓
+     (Jeśli masz dwie osie Y)
+
+WYNIK wykresu:
+  ✓ Oś X: Daty (2023-2025)
+  ✓ Kolumny: Sprzedaż USD
+  ✓ Linia: Trend kursu
+  ✓ Legenda: Na dole
+  ✓ Obie osie Y opisane
+
+
+KROK 7.7: Dodaj tabelę analityczną (opcjonalnie)
+  1. Insert → Table
+  2. Narysuj pod wykresem
+
+  Kolumny w tabeli:
+  - sales_order_header[order_date]
+  - SalesAmount_USD
+  - AvgCurrencyRate
+  - DailyTrend
+
+  Agregacja: Żadna (pokażemy szczegóły)
+
+KROK 7.8: Dodaj spostrzeżenia tekstowe
+  Insert → Text Box
+
+  Tekst:
+  "INTERPRETACJA:
+  • Zielona linia = Kurs USD/PLN (wzrost = słabienie PLN)
+  • Niebieskie kolumny = Sprzedaż w USD
+  • Jeśli kolumny rosną gdy kurs maleje = wyższa sprzedaż przy silnym PLN
+  • Jeśli kolumny rosną gdy kurs rośnie = wyższa sprzedaż przy słabym PLN"
+
+
+================================================================================
+CZĘŚĆ 8: FINALIZACJA I EKSPORT
+================================================================================
+
+KROK 8.1: Przejrzyj raport
+  1. Kliknij: View → Page view
+  2. Przeglądaj obie strony (Sprzedaż USD vs PLN i Sprzedaż vs Trend)
+  3. Sprawdź filtry na obu stronach
+
+KROK 8.2: Interaktywna weryfikacja
+  1. Zmień daty w Slicerze (przeciągnij)
+  2. Sprawdź czy wykresy się aktualizują
+  3. Przełącz między stronami
+
+KROK 8.3: Zapisz projekt
+  Ctrl + S
+
+  Nazwa: LAB5_SalesReport_POWERBI
+  Lokalizacja: c:\Users\Administrator\Desktop\LISTA_LAB5\lab5\
+  Format: .pbix (Power BI Desktop)
+
+KROK 8.4: Eksportuj raport do PDF (opcjonalnie)
+  1. File → Export → Export to PDF
+  2. Wybierz lokalizację
+  3. Zapisz jako: LAB5_SalesReport.pdf
+
+KROK 8.5: Publikuj w Power BI Service (zaawansowane)
+  1. File → Publish
+  2. Zaloguj się na: app.powerbi.com (konto Microsoft)
+  3. Wybierz workspace
+  4. Kliknij: Select
+  5. Raport pojawi się w chmurze
+
+WYNIK:
+  ✓ Raport PowerBI (.pbix) zapisany lokalnie
+  ✓ Raport PDF gotowy do prezentacji
+  ✓ Raport dostępny w Power BI Service (opcjonalnie)
+
+
+================================================================================
+CZĘŚĆ 9: ROZWIĄZYWANIE PROBLEMÓW
+================================================================================
+
+PROBLEM 1: "Nie mogę się połączyć z bazą danych"
+  Rozwiązanie:
+  1. Sprawdź czy SQL Server działa:
+     - Otwórz SQL Server Configuration Manager
+     - Ustaw: SQL Server → Protocol: Named Pipes
+  2. Sprawdź firewall
+  3. Sprawdź hasło: Lab5Pass!23
+  4. Spróbuj: Zamiast PF3L02RY wpisz: localhost (jeśli lokal)
+
+PROBLEM 2: "DirectQuery nie działa, chce Import"
+  Rozwiązanie:
+  1. Kliknij: File → Options and settings → Options
+  2. Security → Change your privacy level settings
+  3. Ustaw na: None
+  4. Spróbuj ponownie Get Data
+
+PROBLEM 3: "Wykresy się nie aktualizują po zmianie filtru"
+  Rozwiązanie:
+  1. Sprawdź relacje między tabelami (Model view)
+  2. Upewni się że Slicer filtro właściwą tabelę
+  3. Kliknij na Slicer → Format → Settings
+  4. Basic filtering: Zaznacz opcję "Select All"
+
+PROBLEM 4: "Miary DAX nie działają"
+  Rozwiązanie:
+  1. Kliknij: Home → Modeling → Measure
+  2. Sprawdź składnię (może być błąd w nazwie kolumny)
+  3. Nazwy kolumn muszą być dokładnie: [nazwa]
+  4. Użyj: Data → Data Model → Measure do debugowania
+
+PROBLEM 5: "Kolumny nie widzę w panelu Fields"
+  Rozwiązanie:
+  1. Home → Edit Queries → Edit Queries
+  2. Sprawdź czy tabele zostały załadowane
+  3. Jeśli brakuje kolumn, uruchom refresh
+  4. Transform → Run & Apply
+
+PROBLEM 6: "Tabela nie się ładuje (timeout)"
+  Rozwiązanie (dla sales_order_detail - duża tabela):
+  1. Zamiast ładować całą tabelę, użyj Native Query:
+  2. Get Data → SQL Server
+  3. Advanced options → SQL statement:
+
+     SELECT TOP 100000
+       order_id, product_id, order_qty,
+       unit_price, line_total, modified_date
+     FROM sales_order_detail
+     WHERE order_date >= '2023-01-01'
+
+  4. To załaduje tylko ostatnie 2 lata
+
+
+================================================================================
+CZĘŚĆ 10: UWAGI I WSKAZÓWKI
+================================================================================
+
+✓ DOBRE PRAKTYKI:
+  ✓ Zawsze używaj DirectQuery dla dużych tabel (> 1M wierszy)
+  ✓ Agreguj dane przed dodaniem do raportu (zamiast GROUP BY po stronie Power BI)
+  ✓ Używaj słicerów do filtrowania zamiast hardcodowania filtrów
+  ✓ Dodaj legendy i etykiety do każdego wykresu
+  ✓ Testuj działanie raportów na różnych zakresach czasowych
+
+✗ BŁĘDY DO UNIKNIĘCIA:
+  ✗ Nie mieszaj Import + DirectQuery (wybierz jeden)
+  ✗ Nie tworz miar na szybko - zawsze testuj DAX
+  ✗ Nie zapominaj o konwencji nazewnictwa (_USD, _PLN)
+  ✗ Nie ładuj zbyt wielu danych na jednej stronie (spowolni raport)
+  ✗ Nie ignoruj ostrzeżeń Power BI (Performance Analyzer)
+
+📊 ANALIZA WYNIKÓW:
+  Po uruchomieniu raportu zwróć uwagę na:
+  1. Czy sprzedaż rośnie w 2024-2025?
+  2. Czy wartość PLN jest wyższa/niższa niż USD?
+  3. Czy trend kursu koreluje ze sprzedażą?
+  4. Które daty mają najwyższą sprzedaż?
+  5. Czy są jakieś anomalie lub skoki?
+
+
+================================================================================
+CZĘŚĆ 11: PUBLIKACJA I PREZENTACJA
+================================================================================
+
+DO PREZENTACJI:
+  1. Otwórz raport w Power BI Desktop
+  2. Kliknij: View → Presentation Mode (F5)
+  3. Pełny ekran - idealne do pokazywania
+
+PODCZAS PREZENTACJI:
+  - Pokaż stronę 1: Sprzedaż USD vs PLN
+    "Widzimy, że sprzedaż rośnie, a kurs maleje - PLN się umacnia"
+
+  - Pokaż stronę 2: Trend kursu
+    "Sprzedaż nie zawsze koreluje bezpośrednio z kursem"
+
+  - Użyj Slicera: "Mogę zmienić zakres dat - slicer filtruje oba wykresy"
+
+  - Pokaż karty: "Całkowita sprzedaż: 123.456.789 USD"
+
+EKSPORT DO DOKUMENTU:
+  File → Export → Export to PDF
+  Lub: Skopiuj wykresy (Ctrl + C) do Word/PowerPoint
+
+
+================================================================================
+                           KONIEC INSTRUKCJI
+================================================================================
+Data: 2026-05-06
+Przygotowana dla: LAB5 - Raport Sprzedaży
+Status: Gotowe do implementacji
+================================================================================

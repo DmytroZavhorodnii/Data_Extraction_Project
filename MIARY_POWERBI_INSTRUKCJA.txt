@@ -1,0 +1,228 @@
+================================================================================
+                   INSTRUKCJA: TWORZENIE MIAR W POWER BI
+                    Krok po kroku dla każdej miary
+================================================================================
+
+================================================================================
+MIARA 1: SalesUSD (Sprzedaż w dolarach)
+================================================================================
+
+KROK 1: Otwórz Data view
+  Po lewej: Data (lub Ctrl+Alt+3)
+
+KROK 2: Przejdź do tabeli sales_order_detail
+  W Fields panel (po lewej) znajdź: 'extract sales_order_detail'
+  Kliknij prawym przyciskiem myszy na nazwie tabeli
+
+KROK 3: Utwórz nową miarę
+  Kliknij prawo na: 'extract sales_order_detail'
+  Kliknij: New Measure
+  Pojawi się: fx SalesUSD =
+
+KROK 4: Wpisz formułę
+  Skasuj: "SalesUSD = "
+  Wpisz:
+
+  = SUM('extract sales_order_detail'[unit_price]) * SUM('extract sales_order_detail'[order_qty])
+
+KROK 5: Potwierdź
+  Naciśnij: Enter
+
+KROK 6: Ustaw format
+  Kliknij na miarę: SalesUSD
+  W Properties (na dole):
+  Format: Currency
+  Decimal places: 2
+
+✓ GOTOWE - Miara SalesUSD działa!
+
+
+================================================================================
+MIARA 2: SalesPLN (Sprzedaż w złotych)
+================================================================================
+
+KROK 1: Otwórz Data view
+  Po lewej: Data
+
+KROK 2: Przejdź do tabeli sales_order_detail
+  Kliknij prawo na: 'extract sales_order_detail'
+  Kliknij: New Measure
+
+KROK 3: Wpisz formułę
+  Skasuj domyślny tekst
+  Wpisz:
+
+  = [SalesUSD] * 4.05
+
+  (Gdzie 4.05 to średni kurs USD/PLN)
+
+KROK 4: Potwierdź
+  Enter
+
+KROK 5: Ustaw format
+  Format: Currency
+  Symbol: PLN (lub zł)
+  Decimal places: 2
+
+✓ GOTOWE - Miara SalesPLN działa!
+
+
+================================================================================
+MIARA 3: TotalSalesCount (Liczba transakcji)
+================================================================================
+
+KROK 1: Nowa miara na tabeli sales_order_detail
+  Kliknij prawo: 'extract sales_order_detail'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = COUNTA('extract sales_order_detail'[sales_order_detail_id])
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Format: Number
+  Decimal places: 0
+
+✓ GOTOWE
+
+
+================================================================================
+MIARA 4: AvgOrderValue (Średnia wartość zamówienia)
+================================================================================
+
+KROK 1: Nowa miara
+  Kliknij prawo: 'extract sales_order_detail'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = [SalesUSD] / [TotalSalesCount]
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Currency, 2 miejsca
+
+✓ GOTOWE
+
+
+================================================================================
+MIARA 5: AvgRate (Średni kurs walut)
+================================================================================
+
+KROK 1: Nowa miara
+  Kliknij prawo: 'extract CurrencyRateData'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = AVERAGE('extract CurrencyRateData'[Rate])
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Decimal
+  Decimal places: 4
+
+✓ GOTOWE
+
+
+================================================================================
+MIARA 6: MinRate (Minimalna wartość kursu)
+================================================================================
+
+KROK 1: Nowa miara
+  Kliknij prawo: 'extract CurrencyRateData'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = MIN('extract CurrencyRateData'[Rate])
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Decimal, 4 miejsca
+
+✓ GOTOWE
+
+
+================================================================================
+MIARA 7: MaxRate (Maksymalna wartość kursu)
+================================================================================
+
+KROK 1: Nowa miara
+  Kliknij prawo: 'extract CurrencyRateData'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = MAX('extract CurrencyRateData'[Rate])
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Decimal, 4 miejsca
+
+✓ GOTOWE
+
+
+================================================================================
+MIARA 8: CurrencyChange (Zmiana kursu)
+================================================================================
+
+KROK 1: Nowa miara
+  Kliknij prawo: 'extract CurrencyRateData'
+  New Measure
+
+KROK 2: Wpisz formułę
+  = [MaxRate] - [MinRate]
+
+KROK 3: Potwierdź
+  Enter
+
+KROK 4: Format
+  Decimal, 4 miejsca
+
+✓ GOTOWE
+
+
+================================================================================
+PODSUMOWANIE - WSZYSTKIE MIARY
+================================================================================
+
+Tabela: 'extract sales_order_detail'
+  ✓ SalesUSD = SUM('extract sales_order_detail'[unit_price]) * SUM('extract sales_order_detail'[order_qty])
+  ✓ SalesPLN = [SalesUSD] * 4.05
+  ✓ TotalSalesCount = COUNTA('extract sales_order_detail'[sales_order_detail_id])
+  ✓ AvgOrderValue = [SalesUSD] / [TotalSalesCount]
+
+Tabela: 'extract CurrencyRateData'
+  ✓ AvgRate = AVERAGE('extract CurrencyRateData'[Rate])
+  ✓ MinRate = MIN('extract CurrencyRateData'[Rate])
+  ✓ MaxRate = MAX('extract CurrencyRateData'[Rate])
+  ✓ CurrencyChange = [MaxRate] - [MinRate]
+
+
+================================================================================
+WERYFIKACJA
+================================================================================
+
+Po utworzeniu wszystkich miar:
+  1. Przejdź do: Report
+  2. Kliknij na kanwie
+  3. Insert → Card
+  4. Przeciągnij miarę do card'u
+  5. Powinny pokazywać się liczby!
+
+  Card 1: SalesUSD → powinno być: ~12 000 000+
+  Card 2: SalesPLN → powinno być: ~48 000 000+
+  Card 3: TotalSalesCount → powinno być: 121 317
+  Card 4: AvgOrderValue → powinno być: ~100+
+  Card 5: AvgRate → powinno być: ~4.05
+  Card 6: CurrencyChange → powinno być: 1-2 (zmiana kursu)
+
+
+================================================================================

@@ -1,0 +1,344 @@
+================================================================================
+                  INSTRUKCJA: TWORZENIE WYKRESÓW W POWER BI
+                        Po stworzeniu miar (8 sztuk)
+================================================================================
+
+================================================================================
+CZĘŚĆ 1: PRZYGOTOWANIE
+================================================================================
+
+KROK 1: Przejdź do Report view
+  Po lewej: Report (lub Ctrl+Alt+1)
+
+KROK 2: Zmień nazwę strony
+  Kliknij prawo na tab "Page 1" (u dołu)
+  Rename page
+  Wpisz: "Sprzedaż: USD vs PLN"
+  Enter
+
+KROK 3: Dodaj tytuł
+  Insert → Text Box
+  Narysuj na górze
+  Wpisz: "Analiza Sprzedaży: USD vs PLN (Rok 2023-2025)"
+
+  Formatowanie:
+  - Font size: 24
+  - Bold: ☑
+  - Color: Navy Blue
+
+
+================================================================================
+CZĘŚĆ 2: PIERWSZY WYKRES (Column Chart)
+================================================================================
+
+TYTUŁ: "Sprzedaż USD vs PLN wg Daty"
+
+KROK 1: Wstaw Column Chart
+  Insert → Column Chart (Clustered Column Chart)
+  Narysuj pod tytułem (zajmuje lewą połowę ekranu)
+
+KROK 2: Dodaj oś X (daty)
+  W panelu Visualizations (po prawej):
+
+  Sekcja: Axis
+  Przeciągnij: 'extract sales_order_header'[order_date] do pola Axis
+
+  Zmień agregację:
+  - Kliknij na order_date w Axis
+  - Wybierz: Day (nie Month, Year - Day!)
+  - Lub: Date (nie Date Hierarchy)
+
+KROK 3: Dodaj Values Y (sprzedaż)
+  Sekcja: Values
+  Przeciągnij: SalesUSD do pola Values
+  Przeciągnij: SalesPLN do pola Values
+
+  Wynik: Dwie serie na jednym wykresie
+
+KROK 4: Formatuj wykres
+  Po zaznaczeniu wykresu:
+
+  Format visual (u dołu panelu Visualizations):
+
+  a) Title:
+     ☑ On
+     Title text: "Sprzedaż USD vs PLN (Lata 2023-2025)"
+     Font size: 16
+     Alignment: Center
+
+  b) Legend:
+     ☑ On
+     Position: Right
+     Title: "Waluta"
+
+  c) X-axis:
+     ☑ Title
+     Title text: "Data zamówienia"
+     Font size: 12
+
+  d) Y-axis:
+     ☑ Title
+     Title text: "Wartość sprzedaży (USD/PLN)"
+     Font size: 12
+
+  e) Colors:
+     SalesUSD: Niebieski (#0078D4)
+     SalesPLN: Zielony (#107C10)
+
+WYNIK: Piękny Column Chart z dwiema kolorowymi kolumnami ✓
+
+
+================================================================================
+CZĘŚĆ 3: DRUGI WYKRES (Combo Chart - Sprzedaż vs Trend Kursu)
+================================================================================
+
+TYTUŁ: "Sprzedaż vs Trend Kursu Walut"
+
+KROK 1: Dodaj nową stronę
+  Kliknij prawo na tab "Sprzedaż: USD vs PLN"
+  New page
+  Zmień nazwę: "Sprzedaż vs Trend Kursu"
+
+KROK 2: Wstaw drugi Column Chart
+  Insert → Combo Chart
+  (Jeśli brakuje - użyj Line Chart zamiast)
+  Narysuj na środku
+
+KROK 3: Dodaj dane do wykresu
+  Visualizations - Axis:
+  Przeciągnij: 'extract sales_order_header'[order_date]
+
+  Visualizations - Column Y-axis:
+  Przeciągnij: SalesUSD
+
+  Visualizations - Line Y-axis:
+  Przeciągnij: AvgRate
+
+  (Jeśli brakuje Line Y-axis - używasz Column Chart, nie Combo)
+
+KROK 4: Jeśli nie ma Line Chart - użyj drugiego Column Chart
+  Alternatywa:
+
+  Insert → Line Chart
+  X-axis: order_date
+  Y-axis: SalesUSD
+  Y-axis: AvgRate (druga seria)
+
+KROK 5: Formatuj wykres
+  Format visual:
+
+  a) Title:
+     ☑ On
+     "Sprzedaż USD vs Trend Kursu USD/PLN (Lata 2023-2025)"
+
+  b) Legend:
+     ☑ On
+     Position: Bottom
+     Labels:
+     - SalesUSD: "Sprzedaż (USD)"
+     - AvgRate: "Kurs USD/PLN"
+
+  c) X-axis Title:
+     ☑ On
+     "Data"
+
+  d) Y-axis (Column):
+     ☑ Title
+     "Wartość sprzedaży (USD)"
+
+  e) Y-axis (Line):
+     ☑ Title
+     "Kurs USD/PLN"
+
+  f) Colors:
+     Sprzedaż: Niebieski
+     Kurs: Pomarańczowy/Czerwony
+
+WYNIK: Combo chart pokazujący dwie osie Y ✓
+
+
+================================================================================
+CZĘŚĆ 4: DODAJ SLICER (FILTR DATY)
+================================================================================
+
+KROK 1: Na OBIE strony dodaj Slicer
+  Insert → Slicer
+  Narysuj na górze (nad wykresami)
+
+KROK 2: Wybierz pole do filtrowania
+  Pojawi się: Select a field
+  Rozwiń: 'extract sales_order_header'
+  Wybierz: order_date
+  Kliknij: Add
+
+KROK 3: Skonfiguruj Slicer
+  Po zaznaczeniu Slicera:
+
+  Format visual:
+  - Type: Between (Zakres)
+  - Style: Dropdown (lub List)
+
+  Zaznacz daty:
+  Od: 2023-01-01
+  Do: 2025-06-30
+
+  ☑ Require every visual has this filter
+  (Żeby slicer filtrował wszystkie wykresy)
+
+WYNIK: Slider pokazujący daty - możesz zmieniać zakres 👍
+
+
+================================================================================
+CZĘŚĆ 5: DODAJ KARTY PODSUMOWUJĄCE
+================================================================================
+
+KROK 1: Dodaj Card na pierwszej stronie
+  Insert → Card (Multi-row Card)
+  Narysuj po prawej stronie od wykresu
+
+KROK 2: Dodaj miary do kart
+
+  Card 1:
+  Fields: SalesUSD
+  Pojawi się: ~12,000,000 (suma)
+  Format: Currency
+  Title: "Łączna sprzedaż USD"
+
+  Card 2:
+  Fields: SalesPLN
+  Pojawi się: ~48,000,000
+  Format: Currency
+  Title: "Łączna sprzedaż PLN"
+
+  Card 3:
+  Fields: TotalSalesCount
+  Pojawi się: 121,317
+  Format: Number
+  Title: "Liczba transakcji"
+
+  Card 4:
+  Fields: AvgRate
+  Pojawi się: 4.0539
+  Format: Decimal
+  Title: "Średni kurs USD/PLN"
+
+KROK 3: Formatuj karty
+  - Font size: 18
+  - Background: Jasny szary
+  - Alignment: Center
+
+
+================================================================================
+CZĘŚĆ 6: DODAJ TEKST OBJAŚNIAJĄCY
+================================================================================
+
+KROK 1: Na drugiej stronie dodaj Text Box
+  Insert → Text Box
+  Narysuj pod wykresem
+
+KROK 2: Wpisz objaśnienie
+  "INTERPRETACJA:
+  • Niebieskie kolumny = Sprzedaż (USD)
+  • Pomarańczowa linia = Kurs USD/PLN
+  • Wzrost linii = PLN słabnie (USD drożeje)
+  • Spadek linii = PLN umacnia się (USD taniej)
+  • Obserwacja: Czy sprzedaż rośnie gdy kurs rośnie?
+    - TAK = wyższa sprzedaż przy słabym PLN
+    - NIE = wyższa sprzedaż przy silnym PLN"
+
+WYNIK: Tekst objaśniający do interpretacji 📝
+
+
+================================================================================
+CZĘŚĆ 7: FINALNA WERYFIKACJA
+================================================================================
+
+SPRAWDŹ NA OBIE STRONACH:
+
+Strona 1: "Sprzedaż: USD vs PLN"
+  ✓ Title na górze
+  ✓ Slicer z datami (2023-2025)
+  ✓ Column Chart z dwiema seriami (USD i PLN)
+  ✓ Legenda po prawej
+  ✓ Osie opisane (X = Data, Y = Wartość)
+  ✓ 4 karty podsumowujące (USD, PLN, Count, Rate)
+
+Strona 2: "Sprzedaż vs Trend Kursu"
+  ✓ Title na górze
+  ✓ Slicer z datami
+  ✓ Combo/Line Chart z dwiema osiami Y
+  ✓ Legenda na dole
+  ✓ Osie opisane
+  ✓ Tekst objaśniający
+
+
+================================================================================
+CZĘŚĆ 8: TESTOWANIE INTERAKTYWNOŚCI
+================================================================================
+
+KROK 1: Zmień daty w Slicerze
+  Przenieś suwak z 2023-01-01 na 2024-01-01
+
+  Wykresy powinny się AKTUALIZOWać ✓
+  Karty powinny zmienić wartości ✓
+
+KROK 2: Przełączaj między stronami
+  Kliknij na tabach u dołu
+  Slicer powinien być widoczny na obu ✓
+  Filtry powinny działać na obu ✓
+
+KROK 3: Hovr nad wykresami
+  Kliknij na kolumnę w wykresie
+  Powinna pokazać tooltip z wartościami ✓
+
+
+================================================================================
+CZĘŚĆ 9: ZAPIS I EKSPORT
+================================================================================
+
+KROK 1: Zapisz raport
+  Ctrl + S
+
+  Nazwa: LAB5_SalesReport_PowerBI
+  Lokalizacja: c:\Users\Administrator\Desktop\LISTA_LAB5\lab5\
+  Format: .pbix (automatyczne)
+
+KROK 2: Eksportuj do PDF (opcjonalnie)
+  File → Export → Export to PDF
+  Nazwa: LAB5_SalesReport.pdf
+  Lokalizacja: ta sama
+
+  Pojawi się PDF ze wszystkimi stronami ✓
+
+KROK 3: Prezentacja (F5)
+  Naciśnij: F5
+  Pełny ekran - idealne do pokazywania!
+  ESC - powrót do edycji
+
+
+================================================================================
+PODSUMOWANIE - GOTOWY RAPORT
+================================================================================
+
+📊 Struktura raportu:
+
+Strona 1: "Sprzedaż: USD vs PLN"
+  - Wykres kolumnowy (dwie waluty)
+  - Slicer do filtrowania daty
+  - 4 karty KPI
+
+Strona 2: "Sprzedaż vs Trend Kursu"
+  - Combo chart (sprzedaż + kurs)
+  - Slicer (wspólny)
+  - Tekst objaśniający
+
+Razem: 2 strony + wykresy interaktywne + filtry ✅
+
+
+================================================================================
+                           KONIEC INSTRUKCJI
+================================================================================
+Data: 2026-05-06
+Status: Gotowe do prezentacji
+Powodzenia! 🎉
+================================================================================

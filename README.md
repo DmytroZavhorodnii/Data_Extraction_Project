@@ -346,7 +346,7 @@ lab5/
 
 ---
 
-## 🔐 Konfiguracja
+## Konfiguracja
 
 ### .dlt/config.toml
 ```toml
@@ -383,12 +383,5 @@ credentials = "mssql+pyodbc://dlt_user:Lab5Pass!23@PF3L02RY/BI_DW?driver=ODBC+Dr
 
 ---
 
-## Autor & Data
 
-- **Data wygenerowania:** 2026-05-06
-- **Przygotowany przez:** Claude Code Assistant
-- **Status:** GOTOWE DO PREZENTACJI
 
----
-
-**Pytania?** Sprawdź sekcję [Jak uruchomić](#jak-uruchomić) lub zobacz pełny raport w `RAPORT_LAB5.txt`.

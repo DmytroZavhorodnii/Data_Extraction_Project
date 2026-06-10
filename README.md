@@ -1,11 +1,11 @@
 # LAB5 - Raport Ekstrakcji Danych (Data Load Tool)
 
 **Data raportu:** 2026-05-06  
-**Status:** ✅ GOTOWE DO PREZENTACJI
+**Status:**  GOTOWE DO PREZENTACJI
 
 ---
 
-## 📋 Spis treści
+## Spis treści
 
 1. [Zadania do wykonania](#zadania-do-wykonania)
 2. [Wykonane zadania](#wykonane-zadania)
@@ -16,7 +16,7 @@
 
 ---
 
-## 🎯 Zadania do wykonania
+## Zadania
 
 ### ZADANIE 1: Zrozumienie struktury Star Schema
 - Zaplanowanie docelowej struktury modelu gwiazdy
@@ -50,7 +50,7 @@ https://api.nbp.pl/api/exchangerates/rates/A/USD/{START}/{END}/?format=json
 
 ---
 
-## ✅ Wykonane zadania
+##Wykonane zadania
 
 ### ZADANIE 1: ZAPOZNANIE SIĘ Z DANYMI
 **Status:** ✓ UKOŃCZONE
@@ -138,8 +138,7 @@ WHERE order_date IS NOT NULL;
 **Czas pobierania:** ~50 sekund
 
 ---
-
-## 📊 Wyniki
+## Wyniki
 
 ### PODSUMOWANIE WYKONANIA
 
@@ -152,7 +151,7 @@ WHERE order_date IS NOT NULL;
 
 ---
 
-## 🚀 Jak uruchomić
+## Jak uruchomić
 
 ### OPCJA 1: Uruchomić skrypt Python (NAJPROSTSZE)
 
@@ -295,7 +294,7 @@ tomli                    >= 2.0.0
 
 ---
 
-## 📝 Weryfikacja wyników
+## Weryfikacja wyników
 
 | Test | Oczekiwane | Wynik | Status |
 |------|-----------|-------|--------|
@@ -307,7 +306,7 @@ tomli                    >= 2.0.0
 
 ---
 
-## 🎓 Wnioski
+## Wnioski
 
 ### Zalecenia dla Lab6 (Budowanie wymiarów):
 1. Użyj tabel z [extract] jako źródła
@@ -328,7 +327,7 @@ tomli                    >= 2.0.0
 
 ---
 
-## 📂 Struktura projektu
+## Struktura projektu
 
 ```
 lab5/
@@ -367,7 +366,7 @@ credentials = "mssql+pyodbc://dlt_user:Lab5Pass!23@PF3L02RY/BI_DW?driver=ODBC+Dr
 
 ---
 
-## 📅 Timeline wykonania
+## Timeline wykonania
 
 ```
 2026-05-06 10:17:15 - Uruchomienie skryptu sql_extract.py
@@ -384,11 +383,11 @@ credentials = "mssql+pyodbc://dlt_user:Lab5Pass!23@PF3L02RY/BI_DW?driver=ODBC+Dr
 
 ---
 
-## ✍️ Autor & Data
+## Autor & Data
 
 - **Data wygenerowania:** 2026-05-06
 - **Przygotowany przez:** Claude Code Assistant
-- **Status:** ✅ GOTOWE DO PREZENTACJI
+- **Status:** GOTOWE DO PREZENTACJI
 
 ---
 
